@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Client hooks code with no Unity dependency, compiled here so its logic can be tested (the hooks project itself
+         builds only against a client's managed DLLs). -->
+    <Compile Include="..\..\src\Ro3Emu.ClientHooks\VoiceLinkState.cs" Link="ClientHooks\VoiceLinkState.cs" />
+    <Compile Include="..\..\src\Ro3Emu.ClientHooks\VoiceOffHint.cs" Link="ClientHooks\VoiceOffHint.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The export's client-scenes.json writer, compiled here so a test can put its file in front of the server's reader. -->
+    <Compile Include="..\..\src\Ro3Emu.DataExport\ClientScenes.cs" Link="DataExport\ClientScenes.cs" />
+    <Compile Include="..\..\src\Ro3Emu.DataExport\Vfs.cs" Link="DataExport\Vfs.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The synthetic game data (SyntheticData.Dir, docs/guide/testing.md): hand-written, every value invented. -->
+    <None Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ro3Emu.Server\Ro3Emu.Server.csproj" />
+    <ProjectReference Include="..\..\src\Ro3Emu.Bot\Ro3Emu.Bot.csproj" />
+    <ProjectReference Include="..\..\src\Ro3Emu.LoadTest\Ro3Emu.LoadTest.csproj" />
+    <ProjectReference Include="..\..\tools\EconomyProbe\EconomyProbe.csproj" />
+  </ItemGroup>
+
+</Project>

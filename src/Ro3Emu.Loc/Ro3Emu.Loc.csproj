@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The client's text sink: Ro3Loc.Map(string) is called from Cecil-inserted prefixes in
+    Unity.TextMeshPro.dll and HUD.dll, so it references nothing but the player's mscorlib/System.
+    The English map (loc_en.tsv, built by tools/Loc/build_locmap.js) is embedded.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <!-- Unity-era code written without nullable annotations; enabling them is a separate change. -->
+    <Nullable>disable</Nullable>
+    <!-- Built only against a local client (never in CI), but held to the same gate as the server: a new warning
+         fails the build. These two rules predate the gate (AsSpan, string.Contains(char) in code that runs inside
+         the client, not verified there yet). -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CA1846;CA2249</WarningsNotAsErrors>
+    <!-- The client's managed DLLs: -p:ClientManaged=..., or the RO3_CLIENT_DIR environment variable (the ROO_PC folder). -->
+    <ClientManaged Condition="'$(ClientManaged)' == '' and '$(RO3_CLIENT_DIR)' != ''">$(RO3_CLIENT_DIR)\ro3_Data\Managed</ClientManaged>
+    <ClientManaged Condition="'$(ClientManaged)' == ''">C:\RO3\ROO_PC\ro3_Data\Managed</ClientManaged>
+    <NoWarn>$(NoWarn);MSB3277;CS1701;CS1702</NoWarn>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <NoStdLib>true</NoStdLib>
+    <NoCompilerStandardLib>true</NoCompilerStandardLib>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib"><HintPath>$(ClientManaged)\mscorlib.dll</HintPath><Private>false</Private></Reference>
+    <!-- Older clients ship a netstandard facade; the 20 Oct 2026 client does not (its mscorlib carries the types). -->
+    <Reference Include="netstandard" Condition="Exists('$(ClientManaged)\netstandard.dll')"><HintPath>$(ClientManaged)\netstandard.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System"><HintPath>$(ClientManaged)\System.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core"><HintPath>$(ClientManaged)\System.Core.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Ro3EmuNoClientData=true (the release build, tools/release/pack.ps1): nothing taken from a client goes in; RO3Emu.exe
+       writes the player's own map to <client>\ro3emu\loc_en.tsv instead. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\data\loc\loc_en.tsv" LogicalName="loc_en.tsv" Condition="Exists('..\..\data\loc\loc_en.tsv') And '$(Ro3EmuNoClientData)' != 'true'" />
+    <EmbeddedResource Include="en_overrides.tsv" LogicalName="en_overrides.tsv" />
+    <EmbeddedResource Include="..\..\data\loc\loc_sids.tsv" LogicalName="loc_sids.tsv" Condition="Exists('..\..\data\loc\loc_sids.tsv') And '$(Ro3EmuNoClientData)' != 'true'" />
+  </ItemGroup>
+
+</Project>
